@@ -3,23 +3,23 @@
 namespace Mpietrucha\Events;
 
 use Closure;
-use Mpietrucha\Support\Concerns\HasFactory;
-use Mpietrucha\Support\Concerns\HasVendor;
-use Mpietrucha\Events\Result;
+use Illuminate\Support\Arr;
 use Mpietrucha\Support\Vendor;
-use Mpietrucha\Events\Contracts\StorageInterface;
+use Mpietrucha\Support\Concerns\HasFactory;
 
 class Context
 {
-    use HasVendor;
     use HasFactory;
 
-    protected ?string $context = null;
+    protected string $caller;
+
+    protected array $contexts = [];
 
     protected ?Result $result = null;
 
-    public function __construct(protected string $accessor, protected string $event, protected Closure $handler)
+    public function __construct(protected string $accessor, protected string $event, protected Closure $handler, protected ?Closure $callback = null)
     {
+        $this->caller = Vendor::create()->path();
     }
 
     public function __destruct()
@@ -32,21 +32,25 @@ class Context
         if (! $this->result) {
             $storage = Bootstrap::create();
 
-            $this->result = $storage->{$this->accessor}($this->event, $this->context);
+            $this->result = $storage->{$this->accessor}($this->event, $this->contexts, $this->caller, $this->callback);
 
-            ($this->handler)($this->result, $storage, $this->context, $this->vendor()->path());
+            ($this->handler)($storage, $this->result);
         }
 
         return $this->result;
     }
 
-    public function context(string $context): void
+    public function context(string|array $contexts): self
     {
-        $this->context = $content;
+        $this->contexts = Arr::wrap($contexts);
+
+        return $this;
     }
 
-    public function current(): void
+    public function app(): self
     {
-        $this->context($this->vendor()->path());
+        return $this->context([
+            Vendor::create()->root()->path()
+        ]);
     }
 }

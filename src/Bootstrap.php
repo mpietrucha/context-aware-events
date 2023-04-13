@@ -16,6 +16,8 @@ use Mpietrucha\Events\Storage\TemporaryFilesystemStorage;
 
 class Bootstrap
 {
+    protected static ?int $contextCompareMode = null;
+
     protected static array $autoloaderFindableDirectories = [];
 
     protected static ?File $internal = null;
@@ -26,6 +28,8 @@ class Bootstrap
 
     public static function create(): StorageInterface
     {
+        Result::setContextCompareMode(self::$contextCompareMode);
+
         return self::$instance ??= self::internal()->get('storage') ?? new TemporaryFilesystemStorage;
     }
 
@@ -37,6 +41,11 @@ class Bootstrap
     public static function autoloaderFindableDirectories(string|array $directories): void
     {
         self::$autoloaderFindableDirectories = Arr::wrap($directories);
+    }
+
+    public static function contextCompareMode(int $contextCompareMode): void
+    {
+        self::$contextCompareMode = $contextCompareMode;
     }
 
     public static function autoloader(null|string|Closure|AutoloaderInterface $autoloader): AutoloaderInterface

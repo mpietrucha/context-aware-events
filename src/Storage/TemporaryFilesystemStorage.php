@@ -20,21 +20,19 @@ class TemporaryFilesystemStorage implements StorageInterface
         $this->storage = File::create()->prefix($this->vendor())->temporary()->shared();
     }
 
-    public function add(string $event, ?string $context, Closure $callback): Result
+    public function add(string $event, array $contexts, string $caller, Closure $callback): Result
     {
-        $this->storage->append($event, [$callback, $context]);
+        $this->storage->append($event, [$callback, $contexts]);
 
-        return $this->get($event);
+        return $this->get($event, $contexts, $caller);
     }
 
-    public function get(string $event, ?string $context): Result
+    public function get(string $event, array $contexts, string $caller): Result
     {
-        dd($event, $contex);
-        $result = $this->storage->get($event)->filter(function (Collection $entry) use ($context) {
-
-        });
-
-        return Result::create($event, $result);
+        return Result::create(
+            $this->storage->get($event) ?? collect(),
+            $event, $contexts, $caller
+        );
     }
 
     public function delete(string $event): void
