@@ -1,0 +1,34 @@
+{
+    "name": "mpietrucha/context-aware-events",
+    "description": "Context aware events",
+    "type": "liblary",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Mpietrucha\\Events\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Michał Pietrucha",
+            "email": "michal.pietrucha@off-site.pl"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^8.1",
+        "mpietrucha/support": "^1.0",
+        "mpietrucha/laravel-macros": "^1.0",
+        "opis/closure": "^3.6",
+        "mpietrucha/error-raporting": "^1.0",
+        "illuminate/support": "^10.6",
+        "mpietrucha/finder": "^1.0",
+        "mpietrucha/context-aware-storage": "^1.0"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^6.2"
+    }
+}
