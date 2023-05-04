@@ -2,31 +2,22 @@
 
 namespace Mpietrucha\Events;
 
+use Closure;
 use Illuminate\Support\Collection;
 use Mpietrucha\Support\Concerns\HasFactory;
+use Mpietrucha\Events\Contracts\StorageInterface;
 
 class Result
 {
     use HasFactory;
 
+    protected array $events = [];
+
     protected Collection $contexts;
-
-    protected static ?int $contextCompareMode = null;
-
-    public const CONTEXT_COMPARE_BOTH = 0;
-
-    public const CONTEXT_COMPARE_SOURCE_CLOSURE = 1;
-
-    public const CONTEXT_COMPARE_SOURCE_DISPATCHER = 2;
 
     public function __construct(protected Collection $result, protected string $event, array $contexts, protected string $caller)
     {
         $this->contexts = collect($contexts);
-    }
-
-    public static function setContextCompareMode(?int $contextCompareMode): void
-    {
-        self::$contextCompareMode = $contextCompareMode ?? self::CONTEXT_COMPARE_SOURCE_CLOSURE;
     }
 
     public function event(): string
@@ -34,41 +25,61 @@ class Result
         return $this->event;
     }
 
+    public function events(?StorageInterface $storage = null, ?Closure $handler = null): ?Collection
+    {
+        $events = collect($this->events);
+
+        if ($storage && $events->splice(1, 0, [$handler])) {
+            $events->filter()->each(fn (Closure $event) => $event($storage, $this));
+        }
+
+        return $events->withoutMiddle();
+    }
+
+    public function withEvents(Closure $before, Closure $after): self
+    {
+        $this->events = [$before, $after];
+
+        return $this;
+    }
+
+    public function before(): ?Closure
+    {
+        return $this->events()?->first();
+    }
+
+    public function after(): ?Closure
+    {
+        return $this->events()?->last();
+    }
+
     public function get(): Collection
     {
-        return $this->result->filter($this->filter(...))->map->first();
+        return $this->result->recursive()->map($this->map(...))->filter()->flatten()->chunk(2);
     }
 
-    protected function filter(Collection $result): bool
+    protected function map(Collection $result): ?array
     {
-        [, $contexts] = $result;
+        [$callback, $contexts] = $result;
+
+        if (! $callback instanceof Closure) {
+            return null;
+        }
 
         if (! $contexts->count() && ! $this->contexts->count()) {
-            return true;
+            return [$callback, $this->caller];
         }
 
-        $contextsWithCaller = $this->contexts->whenEmpty(fn (Collection $contexts) => $contexts->push($this->caller));
-
-        [$compareSourceClosure, $compareSourceDispatcher] = [
-            $this->context($contexts, $contextsWithCaller),
-            $this->context($this->contexts, $contexts)
-        ];
-
-        if (self::$contextCompareMode === self::CONTEXT_COMPARE_SOURCE_CLOSURE) {
-            return $compareSourceClosure;
-        }
-
-        if (self::$contextCompareMode === self::CONTEXT_COMPARE_SOURCE_DISPATCHER) {
-            return $compareSourceDispatcher;
-        }
-
-        return $compareSourceClosure || $compareSourceDispatcher;
+        return $this->context(
+            $contexts,
+            $this->contexts->whenEmpty(fn (Collection $contexts) => $contexts->push($this->caller))
+        )->map(fn () => [$callback, $this->caller])->toArray();
     }
 
-    protected function context(Collection $source, Collection $compare): bool
+    protected function context(Collection $source, Collection $compare): Collection
     {
-        return $source->filter(function (string $context) use ($compare) {
+        return $source->map(function (string $context) use ($compare) {
             return $compare->toStringable()->filter->is($context)->count();
-        })->count();
+        })->filter();
     }
 }

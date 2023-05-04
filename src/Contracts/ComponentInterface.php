@@ -7,6 +7,8 @@ use Mpietrucha\Events\Result;
 
 interface ComponentInterface
 {
+    public function getGlobalEvents(): array;
+
     public function getStorageAccessor(): string;
 
     public function handle(StorageInterface $storage, Result $result): void;

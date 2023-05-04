@@ -12,4 +12,6 @@ interface StorageInterface
     public function get(string $event, array $contexts, string $caller): Result;
 
     public function delete(string $event): void;
+
+    public function truncate(): void;
 }

@@ -2,81 +2,52 @@
 
 namespace Mpietrucha\Events;
 
-use Closure;
-use Mpietrucha\Storage\File;
-use Mpietrucha\Support\Types;
-use Illuminate\Support\Arr;
-use Mpietrucha\Support\Vendor;
-use Mpietrucha\Events\Autoloader\FinderAutoloader;
-use Mpietrucha\Events\Autoloader\ClosureAutoloader;
-use Mpietrucha\Events\Autoloader\PathAutoloader;
+use Psr\Log\LoggerInterface;
+use Mpietrucha\Support\Bootstrapper;
+use Mpietrucha\Events\Concerns\GlobalEvents;
 use Mpietrucha\Events\Contracts\StorageInterface;
-use Mpietrucha\Events\Contracts\AutoloaderInterface;
 use Mpietrucha\Events\Storage\TemporaryFilesystemStorage;
+use Mpietrucha\Events\Contracts\OutputConfiguratorInterface;
+use Mpietrucha\Events\Configurator\OutputConfigurator;
 
 class Bootstrap
 {
-    protected static ?int $contextCompareMode = null;
+    use GlobalEvents;
 
-    protected static array $autoloaderFindableDirectories = [];
+    protected static ?LoggerInterface $logger = null;
 
-    protected static ?File $internal = null;
+    protected static ?StorageInterface $storage = null;
 
-    protected static ?StorageInterface $instance = null;
+    protected static ?Bootstrapper $bootstrapper = null;
 
-    protected static ?AutoloaderInterface $autoloader = null;
+    protected static ?OutputConfiguratorInterface $closuresOutputConfigurator = null;
 
     public static function create(): StorageInterface
     {
-        Result::setContextCompareMode(self::$contextCompareMode);
+        return self::$storage ??= new TemporaryFilesystemStorage;
+    }
 
-        return self::$instance ??= self::internal()->get('storage') ?? new TemporaryFilesystemStorage;
+    public static function logger(LoggerInterface $logger): void
+    {
+        self::$logger = $logger;
     }
 
     public static function storage(StorageInterface $storage): void
     {
-        self::internal()->put('storage', $storage);
+        self::$storage = $storage;
     }
 
-    public static function autoloaderFindableDirectories(string|array $directories): void
+    public static function bootstrapper(Bootstrapper $bootstrapper): void
     {
-        self::$autoloaderFindableDirectories = Arr::wrap($directories);
+        self::$bootstrapper = $bootstrapper;
     }
 
-    public static function contextCompareMode(int $contextCompareMode): void
+    public static function closuresOutputConfigurator(null|Closure|OutputConfiguratorInterface $configurator = null): OutputConfiguratorInterface
     {
-        self::$contextCompareMode = $contextCompareMode;
-    }
+        self::$closuresOutputConfigurator ??= OutputConfigurator::create();
 
-    public static function autoloader(null|string|Closure|AutoloaderInterface $autoloader): AutoloaderInterface
-    {
-        if (self::$autoloader) {
-            return self::$autoloader;
-        }
+        self::$closuresOutputConfigurator = value($configurator, self::$closuresOutputConfigurator) ?? self::$closuresOutputConfigurator;
 
-        if ($autoloader = self::internal()->get('autoloader')) {
-            return self::$autoloader = $autoloader;
-        }
-
-        if ($autoloader instanceof Closure) {
-            $autoloader = new ClosureAutoloader($autoloader);
-        }
-
-        if (Types::string($autoloader)) {
-            $autoloader = new PathAutoloader($autoloader);
-        }
-
-        if (! $autoloader) {
-            $autoloader = new FinderAutoloader(self::$autoloaderFindableDirectories);
-        }
-
-        self::internal()->put('autoloader', $autoloader);
-
-        return self::$autoloader = $autoloader;
-    }
-
-    protected static function internal(): File
-    {
-        return self::$internal ??= File::create()->prefix(Vendor::create())->temporary()->shared();
+        return self::$closuresOutputConfigurator;
     }
 }

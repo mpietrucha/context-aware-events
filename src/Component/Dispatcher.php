@@ -2,13 +2,20 @@
 
 namespace Mpietrucha\Events\Component;
 
-use Closure;
+use Mpietrucha\Events\Result;
+use Mpietrucha\Events\Process;
+use Mpietrucha\Events\Bootstrap;
+use Illuminate\Support\Collection;
 use Mpietrucha\Events\Factory\Router;
 use Mpietrucha\Events\Contracts\StorageInterface;
-use Mpietrucha\Events\Result;
 
 class Dispatcher extends Router
 {
+    public function getGlobalEvents(): array
+    {
+        return [Bootstrap::beforeDispatch(...), Bootstrap::afterDispatch(...)];
+    }
+
     public function getStorageAccessor(): string
     {
         return 'get';
@@ -16,7 +23,9 @@ class Dispatcher extends Router
 
     public function handle(StorageInterface $storage, Result $result): void
     {
-        $result->get()->each(fn (Closure $callback) => $callback());
+        $result->get()->each(fn (Collection $results) => $result->events($storage, function () use ($results) {
+            return Process::create(...$results);
+        }));
 
         $storage->delete($result->event());
     }

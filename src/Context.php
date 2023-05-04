@@ -11,15 +11,12 @@ class Context
 {
     use HasFactory;
 
-    protected string $caller;
-
     protected array $contexts = [];
 
     protected ?Result $result = null;
 
-    public function __construct(protected string $accessor, protected string $event, protected Closure $handler, protected ?Closure $callback = null)
+    public function __construct(protected Closure $handler)
     {
-        $this->caller = Vendor::create()->path();
     }
 
     public function __destruct()
@@ -29,15 +26,7 @@ class Context
 
     public function result(): Result
     {
-        if (! $this->result) {
-            $storage = Bootstrap::create();
-
-            $this->result = $storage->{$this->accessor}($this->event, $this->contexts, $this->caller, $this->callback);
-
-            ($this->handler)($storage, $this->result);
-        }
-
-        return $this->result;
+        return $this->result ??= ($this->handler)($this->contexts);
     }
 
     public function context(string|array $contexts): self

@@ -5,16 +5,24 @@ require 'vendor/autoload.php';
 use Mpietrucha\Events\Component\Event;
 use Mpietrucha\Events\Component\Dispatcher;
 use Mpietrucha\Events\Bootstrap;
-use Mpietrucha\Events\Result;
+use Illuminate\Support\Facades\Artisan;
+use Mpietrucha\Support\Bootstrapper;
+use Mpietrucha\Finder\FrameworksFinder;
 
+$bootstrapper = FrameworksFinder::create()->in('/Users/michalpietrucha/Documents/webs/offsite')->cache('xd')->instances()->first()?->bootstrapper();
 
-ok to by bylo ojebane, autoloadery i jazda, do rozkminienia co z wieloma frameworkami do obsluzenia.
+$bootstrapper->bootstrap();
 
-// Bootstrap::contextCompareMode(Result::CONTEXT_COMPARE_SOURCE_DISPATCHER);
-// Bootstrap::contextCompareMode(Result::CONTEXT_COMPARE_BOTH);
-//
+Artisan::call('inspire');
+
+// Bootstrap::closuresOutputConfigurator()->withDisable(false)->withWarning(false)->withType('success');
+
+// Bootstrap::create()->truncate();
+
 // Event::composer(function () {
-//     dump('xd');
-// })->app();
+//     $this->assertProcessContext();
 //
+//     Artisan::call('inspire');
+// });
+
 // Dispatcher::composer();
