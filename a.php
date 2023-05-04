@@ -9,11 +9,11 @@ use Illuminate\Support\Facades\Artisan;
 use Mpietrucha\Support\Bootstrapper;
 use Mpietrucha\Finder\FrameworksFinder;
 
-$bootstrapper = FrameworksFinder::create()->in('/Users/michalpietrucha/Documents/webs/offsite')->cache('xd')->instances()->first()?->bootstrapper();
-
-$bootstrapper->bootstrap();
-
-Artisan::call('inspire');
+// $bootstrapper = FrameworksFinder::create()->in('/Users/michalpietrucha/Documents/webs/offsite')->cache('xd')->instances()->first()?->bootstrapper();
+//
+// $bootstrapper->bootstrap();
+//
+// Artisan::call('inspire');
 
 // Bootstrap::closuresOutputConfigurator()->withDisable(false)->withWarning(false)->withType('success');
 
