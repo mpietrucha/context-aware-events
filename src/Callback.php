@@ -3,12 +3,11 @@
 namespace Mpietrucha\Events;
 
 use Closure;
-use Exception;
 use Mpietrucha\Support\Condition;
 use Mpietrucha\Support\Reflector;
 use Mpietrucha\Support\Bootstrapper;
 use Mpietrucha\Support\SerializableClosure;
-use Mpietrucha\Finder\FrameworksFinder;
+use Mpietrucha\Finder\FrameworkFinder;
 use Illuminate\Support\Traits\Tappable;
 use Mpietrucha\Events\Exception\ProcessNotAllowedException;
 use Mpietrucha\Events\Exception\ClosureNotAllowedException;
@@ -24,6 +23,8 @@ class Callback
     protected int $counter = 0;
 
     protected bool $process = false;
+
+    protected ?Closure $bootstrapped = null;
 
     protected ?SerializableClosure $bootstrap = null;
 
@@ -48,6 +49,8 @@ class Callback
         }
 
         $this->bootstrap?->invoke();
+
+        value($this->bootstrapped);
 
         $callback();
     }
@@ -75,6 +78,13 @@ class Callback
         }
 
         return $instance->tap(fn (self $instance) => $instance->callback = $this->callback);
+    }
+
+    public function bootstrapped(Closure $bootstrapped): self
+    {
+        $this->bootstrapped = $bootstrapped;
+
+        return $this;
     }
 
     public function runningInProcessMode(): self
@@ -107,7 +117,7 @@ class Callback
             return $this;
         }
 
-        $bootstrapper = FrameworksFinder::create()->in($in)->cache([
+        $bootstrapper = FrameworkFinder::create()->in($in)->cache([
             self::FRAMEWORK_FINDER_CACHE_KEY, $name, $in
         ])->instance(function (FrameworkFinderInterface $framework) use ($name) {
             if (! $name) {
@@ -133,22 +143,19 @@ class Callback
 
     protected function assertProcessContext(): void
     {
-        throw_unless(
-            $this->callback,
-            new ClosureNotAllowedException('Running outside callback is not allowed in this instance')
-        );
+        throw_unless($this->callback, new ClosureNotAllowedException(
+            'Running outside callback is not allowed in this instance'
+        ));
 
-        throw_unless(
-            $this->process,
-            new ClosureNotAllowedException('Running outside process is not allowed in this instance')
-        );
+        throw_unless($this->process, new ClosureNotAllowedException(
+            'Running outside process is not allowed in this instance'
+        ));
     }
 
     protected function assertClosureContext(): void
     {
-        throw_if(
-            $this->process,
-            new ProcessNotAllowedException('Running inside process is not allowed in this instance')
-        );
+        throw_if($this->process, new ProcessNotAllowedException(
+            'Running inside process is not allowed in this instance'
+        ));
     }
 }

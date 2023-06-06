@@ -2,8 +2,6 @@
 
 namespace Mpietrucha\Events\Exception;
 
-use Exception;
-
-class ClosureNotAllowedException extends Exception
+class ClosureNotAllowedException extends \Mpietrucha\Exception\RuntimeException
 {
 }

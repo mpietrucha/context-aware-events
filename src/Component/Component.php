@@ -1,6 +1,6 @@
 <?php
 
-namespace Mpietrucha\Events\Factory;
+namespace Mpietrucha\Events\Component;
 
 use Closure;
 use Mpietrucha\Events\Result;
@@ -12,7 +12,7 @@ use Mpietrucha\Support\Concerns\HasFactory;
 use Mpietrucha\Events\Contracts\StorageInterface;
 use Mpietrucha\Events\Contracts\ComponentInterface;
 
-abstract class Router implements ComponentInterface
+abstract class Component implements ComponentInterface
 {
     use HasFactory;
 

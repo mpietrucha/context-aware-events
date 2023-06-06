@@ -6,10 +6,9 @@ use Mpietrucha\Events\Result;
 use Mpietrucha\Events\Process;
 use Mpietrucha\Events\Bootstrap;
 use Illuminate\Support\Collection;
-use Mpietrucha\Events\Factory\Router;
 use Mpietrucha\Events\Contracts\StorageInterface;
 
-class Dispatcher extends Router
+class Dispatcher extends Component
 {
     public function getGlobalEvents(): array
     {

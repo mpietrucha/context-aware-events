@@ -14,7 +14,7 @@ use Mpietrucha\Support\Serializer;
 use Mpietrucha\Support\Concerns\HasFactory;
 use Mpietrucha\Support\Concerns\HasVendor;
 use Mpietrucha\Error\Reporting;
-use Mpietrucha\Error\Error;
+use Mpietrucha\Error\Repository\Error;
 use Mpietrucha\Support\Rescue;
 use Mpietrucha\Cli\Buffer\Handlers\SymfonyVarDumperHandler;
 use Mpietrucha\Events\Exception\ClosureNotAllowedException;
@@ -32,7 +32,7 @@ class Process
 
     protected const STUB = 'stubs/process.stub.php';
 
-    protected const ERROR_BAG = 'event.process.error';
+    protected const ERRORABLE = 'context.aware.events.process.errors';
 
     public function __construct(Closure $callback, protected string $caller)
     {
@@ -52,13 +52,11 @@ class Process
 
         $this->output->style()->type($this->vendor());
 
-        $this->callback->runningInProcessMode();
-
-        Reporting::create()->withErrorBag(self::ERROR_BAG)->disable()->while(function () use ($callback) {
+        Reporting::create()->errorableAs(self::ERRORABLE)->disable()->while(function () use ($callback) {
             Rescue::create(fn () => $callback())->fail($this->process(...))->call();
         });
 
-        Error::get(self::ERROR_BAG)->each(function (Error $error) {
+        Reporting::errors(self::ERRORABLE)->each(function (Error $error) {
             $this->output->error($error->error());
         });
 

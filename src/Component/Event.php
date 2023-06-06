@@ -3,9 +3,8 @@
 namespace Mpietrucha\Events\Component;
 
 use Mpietrucha\Events\Bootstrap;
-use Mpietrucha\Events\Factory\Router;
 
-class Event extends Router
+class Event extends Component
 {
     public function getGlobalEvents(): array
     {

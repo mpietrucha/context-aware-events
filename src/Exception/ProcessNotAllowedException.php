@@ -2,8 +2,6 @@
 
 namespace Mpietrucha\Events\Exception;
 
-use Exception;
-
-class ProcessNotAllowedException extends Exception
+class ProcessNotAllowedException extends Mpietrucha\Exception\RuntimeException
 {
 }
