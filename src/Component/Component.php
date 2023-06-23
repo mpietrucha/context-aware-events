@@ -16,8 +16,11 @@ abstract class Component implements ComponentInterface
 {
     use HasFactory;
 
-    public function __construct(protected string $event, protected ?Closure $callback = null)
+    protected ?Closure $callback = null;
+
+    public function __construct(protected string $event, mixed $callback = null)
     {
+        $this->callback = $callback instanceof Closure ? $callback : null;
     }
 
     public static function __callStatic(string $method, array $arguments): Context
