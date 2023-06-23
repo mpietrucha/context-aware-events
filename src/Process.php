@@ -5,20 +5,15 @@ namespace Mpietrucha\Events;
 use Closure;
 use Throwable;
 use Mpietrucha\Cli\Cli;
-use Mpietrucha\Support\Caller;
-use Mpietrucha\Support\Vendor;
 use Mpietrucha\Support\Base64;
-use Mpietrucha\Support\File;
-use Mpietrucha\Support\Process as ProcessFactory;
-use Mpietrucha\Support\Serializer;
-use Mpietrucha\Support\Concerns\HasFactory;
-use Mpietrucha\Support\Concerns\HasVendor;
-use Mpietrucha\Error\Reporting;
-use Mpietrucha\Error\Repository\Error;
+use Mpietrucha\Support\Caller;
 use Mpietrucha\Support\Rescue;
-use Mpietrucha\Cli\Buffer\Handlers\SymfonyVarDumperHandler;
+use Mpietrucha\Error\Reporting;
+use Mpietrucha\Support\Serializer;
+use Mpietrucha\Support\Concerns\HasVendor;
+use Mpietrucha\Support\Concerns\HasFactory;
+use Mpietrucha\Support\Process as ProcessFactory;
 use Mpietrucha\Events\Exception\ClosureNotAllowedException;
-use Mpietrucha\Events\Contracts\OutputConfiguratorInterface;
 
 class Process
 {
@@ -26,90 +21,68 @@ class Process
 
     use HasVendor;
 
+    protected Cli $output;
+
+    protected Closure $outputer;
+
     protected Callback $callback;
 
-    protected static OutputConfiguratorInterface $configurator;
+    protected static Closure $configurator;
 
     protected const STUB = 'stubs/process.stub.php';
-
-    protected const ERRORABLE = 'context.aware.events.process.errors';
 
     public function __construct(Closure $callback, protected string $caller)
     {
         $this->callback = Callback::create($callback)->unbind();
 
-        $this->output = Cli::create()->buffer(function (Cli $cli) {
-            if (self::$configurator->disable()) {
-                $this->tty(false);
-            }
+        [$configurator, $vendor] = [self::$configurator, $this->vendor()];
 
-            if (self::$configurator->warning()) {
-                 once(fn () => $cli->error('Unexpected output from event closure'))->call();
-            }
-
-            return fn (string $buffer) => $cli->{self::$configurator->type()}($buffer);
+        $this->outputer = fn () => tap(Cli::create()->withErrorHandler()->buffer($configurator), function (Cli $cli) use ($vendor) {
+            $cli->style()->as($vendor);
         });
 
-        $this->output->style()->type($this->vendor());
+        $this->output = value($this->outputer);
 
-        Reporting::create()->errorableAs(self::ERRORABLE)->disable()->while(function () use ($callback) {
-            Rescue::create(fn () => $callback())->fail($this->process(...))->call();
-        });
-
-        Reporting::errors(self::ERRORABLE)->each(function (Error $error) {
-            $this->output->error($error->error());
-        });
-
-        $this->output->finish();
+        Rescue::create($callback)->fail($this->process(...))->call();
     }
 
-    public static function setConfigurator(OutputConfiguratorInterface $configurator): void
+    public static function setConfigurator(?Closure $configurator): void
     {
-        self::$configurator = $configurator;
+        self::$configurator = Caller::create($configurator)->add(fn (Cli $cli) => function (string $buffer) use ($cli) {
+            once(fn () => $cli->error('Unexpected output from event closure'))->call();
+
+            return $cli->success($buffer);
+        })->get();
+    }
+
+    public static function serialize(mixed $callback): string
+    {
+        return Base64::encode(Serializer::create($callback)->serialize());
+    }
+
+    public static function unserialize(string $callback): mixed
+    {
+        return Serializer::create(Base64::decode($callback))->unserialize();
     }
 
     protected function process(Throwable $exception): void
     {
-        if (! $exception instanceof ClosureNotAllowedException) {
-            $this->output->error($exception);
+        throw_unless($exception instanceof ClosureNotAllowedException, $exception);
+
+        $vendor = $this->vendor();
+
+        $version = Version::create($this->callback->framework(in: $this->caller)->runningInProcessMode(), $vendor);
+
+        if ($version->failed() && $path = $version->mismatched()) {
+            $this->output->error("Package version mismatch between current source and found framework in $path");
 
             return;
         }
 
-        $this->callback->framework(in: $this->caller);
-
-        $this->callback->runningInProcessMode();
-
-        $process = ProcessFactory::file($this->executableStub())->stub([
-            '__AUTOLOAD__' => $this->vendor()->autoload(),
-            '__CALLBACK__' => $this->executableCallback(),
-            '__COLORS__' => $this->output->getBuffer()->handlers()->get(SymfonyVarDumperHandler::class)->getSupportsColors()
-        ])->forever()->run();
-
-        if ($output = $process->errorOutput()) {
-            $this->output->error($output);
-
-            return;
-        }
-
-        if (! $output = $process->output()) {
-            return;
-        }
-
-        str($output)->toNewLineCollection()->each(function (string $output) {
-            echo $output;
-        });
-    }
-
-    protected function executableCallback(): string
-    {
-        $serialized = Serializer::create($this->callback)->serialize();
-
-        return Base64::encode($serialized);
-    }
-
-    protected function executableStub(): string
-    {
-        return collect([$this->vendor()->path(), self::STUB])->toRootDirectory();
+        ProcessFactory::file(collect([$this->vendor()->path(), self::STUB])->toRootDirectory())->stub([
+            '__AUTOLOAD__' => $vendor->autoload(),
+            '__CALLBACK__' => self::serialize($this->callback),
+            '__BUFFER__' => self::serialize($this->outputer)
+        ])->tty()->start()->wait();
     }
 }

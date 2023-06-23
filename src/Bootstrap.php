@@ -2,25 +2,24 @@
 
 namespace Mpietrucha\Events;
 
+use Closure;
 use Psr\Log\LoggerInterface;
 use Mpietrucha\Support\Bootstrapper;
 use Mpietrucha\Events\Concerns\GlobalEvents;
 use Mpietrucha\Events\Contracts\StorageInterface;
 use Mpietrucha\Events\Storage\TemporaryFilesystemStorage;
-use Mpietrucha\Events\Contracts\OutputConfiguratorInterface;
-use Mpietrucha\Events\Configurator\OutputConfigurator;
 
 class Bootstrap
 {
     use GlobalEvents;
+
+    protected static ?Closure $output = null;
 
     protected static ?LoggerInterface $logger = null;
 
     protected static ?StorageInterface $storage = null;
 
     protected static ?Bootstrapper $bootstrapper = null;
-
-    protected static ?OutputConfiguratorInterface $closuresOutputConfigurator = null;
 
     public static function create(): StorageInterface
     {
@@ -42,12 +41,8 @@ class Bootstrap
         self::$bootstrapper = $bootstrapper;
     }
 
-    public static function closuresOutputConfigurator(null|Closure|OutputConfiguratorInterface $configurator = null): OutputConfiguratorInterface
+    public static function output(null|Closure $configurator = null): void
     {
-        self::$closuresOutputConfigurator ??= OutputConfigurator::create();
-
-        self::$closuresOutputConfigurator = value($configurator, self::$closuresOutputConfigurator) ?? self::$closuresOutputConfigurator;
-
-        return self::$closuresOutputConfigurator;
+        self::$output = $configurator;
     }
 }

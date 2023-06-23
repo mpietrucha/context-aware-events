@@ -87,17 +87,6 @@ class Callback
         return $this;
     }
 
-    public function runningInProcessMode(): self
-    {
-        $this->process = true;
-
-        if ($bootstrapper = self::$bootstrapper) {
-            $this->bootstrap = SerializableClosure::create(fn () => $bootstrapper->bootstrap());
-        }
-
-        return $this;
-    }
-
     public function bootstrap(string $path, ?Closure $callback = null, bool $vendor = false): self
     {
         if (! $this->shouldHandleNewBootstrapper()) {
@@ -130,6 +119,19 @@ class Callback
         self::setBootstrapper($bootstrapper);
 
         return $this;
+    }
+
+    public function runningInProcessMode(): ?string
+    {
+        $this->process = true;
+
+        if ($bootstrapper = self::$bootstrapper) {
+            $this->bootstrap = SerializableClosure::create(fn () => $bootstrapper->bootstrap());
+
+            return $bootstrapper->path();
+        }
+
+        return null;
     }
 
     protected function shouldHandleNewBootstrapper(): bool

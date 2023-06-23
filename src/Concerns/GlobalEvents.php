@@ -5,20 +5,21 @@ namespace Mpietrucha\Events\Concerns;
 use Mpietrucha\Events\Result;
 use Mpietrucha\Events\Callback;
 use Mpietrucha\Events\Process;
+use Mpietrucha\Support\Vendor;
 use Mpietrucha\Events\Contracts\StorageInterface;
 
 trait GlobalEvents
 {
     public static function before(StorageInterface $storage, Result $result): void
     {
-        self::$logger?->info('mpietrucha/global-events starting');
+        self::log('starting');
     }
 
     public static function beforeEvent(StorageInterface $storage, Result $result): void
     {
-        Process::setConfigurator(self::closuresOutputConfigurator());
+        Process::setConfigurator(self::$output);
 
-        self::$logger?->info('mpietrucha/global-events starting event', [
+        self::log('starting event', [
             'event' => $result->event()
         ]);
     }
@@ -27,19 +28,19 @@ trait GlobalEvents
     {
         Callback::setBootstrapper(self::$bootstrapper);
 
-        self::$logger?->info('mpietrucha/global-events starting dispatch', [
+        self::log('starting dispatch', [
             'event' => $result->event()
         ]);
     }
 
     public static function after(StorageInterface $storage, Result $result): void
     {
-        self::$logger?->info('mpietrucha/global-events ending');
+        self::log('ending');
     }
 
     public static function afterEvent(StorageInterface $storage, Result $result): void
     {
-        self::$logger?->info('mpietrucha/global-events ending event', [
+        self::log('ending event', [
             'event' => $result->event()
         ]);
     }
@@ -48,8 +49,13 @@ trait GlobalEvents
     {
         Callback::setBootstrapper(null);
 
-        self::$logger?->info('mpietrucha/global-events ending dispatch', [
+        self::log('ending dispatch', [
             'event' => $result->event()
         ]);
+    }
+
+    protected static function log(string $message, array $context = [], string $vendor = new Vendor): void
+    {
+        self::$logger?->info("$vendor $message", $context);
     }
 }
