@@ -17,8 +17,6 @@ trait GlobalEvents
 
     public static function beforeEvent(StorageInterface $storage, Result $result): void
     {
-        Process::setConfigurator(self::$output);
-
         self::log('starting event', [
             'event' => $result->event()
         ]);
@@ -26,6 +24,8 @@ trait GlobalEvents
 
     public static function beforeDispatch(StorageInterface $storage, Result $result): void
     {
+        Process::setConfigurator(self::$output);
+
         Callback::setBootstrapper(self::$bootstrapper);
 
         self::log('starting dispatch', [
