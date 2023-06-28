@@ -3,6 +3,7 @@
 namespace Mpietrucha\Events\Component;
 
 use Closure;
+use Mpietrucha\Events\Stage;
 use Mpietrucha\Events\Result;
 use Mpietrucha\Support\Vendor;
 use Mpietrucha\Events\Context;
@@ -16,16 +17,15 @@ abstract class Component implements ComponentInterface
 {
     use HasFactory;
 
-    protected ?Closure $callback = null;
-
-    public function __construct(protected string $event, mixed $callback = null)
+    public function __construct(protected string $event, protected ?Closure $callback = null)
     {
-        $this->callback = $callback instanceof Closure ? $callback : null;
     }
 
-    public static function __callStatic(string $method, array $arguments): Context
+    public static function __callStatic(string $method, array $arguments): ?Context
     {
-        return self::create($method, ...$arguments)->context();
+        return Stage::create($method, ...$arguments)->handle(function (string $method, ?Closure $callback) {
+            return self::create($method, $callback)->context();
+        });
     }
 
     public function handle(StorageInterface $storage, Result $result): void

@@ -38,8 +38,8 @@ class Context
 
     public function app(): self
     {
-        return $this->context([
-            Vendor::create()->root()->path()
-        ]);
+        return $this->context(collect([
+            Vendor::create()->root()->path(), '*'
+        ])->toDirectory());
     }
 }
