@@ -67,7 +67,7 @@ class Process
 
     protected function process(Throwable $exception): void
     {
-        throw_unless($exception instanceof ClosureNotAllowedException, $exception);
+        throw_if($exception instanceof ClosureNotAllowedException, $exception);
 
         $vendor = $this->vendor();
 
