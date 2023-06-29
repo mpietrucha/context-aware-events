@@ -7,7 +7,7 @@ use Composer\Script\Event;
 use Mpietrucha\Support\Vendor;
 use Mpietrucha\Events\Context;
 use Mpietrucha\Support\File;
-use Mpietrucha\Events\EventInterface;
+use Mpietrucha\Events\Contracts\EventInterface;
 use Mpietrucha\Support\Process as ProcessBuilder;
 use Symfony\Component\Process\Process;
 use Mpietrucha\Support\Concerns\HasFactory;
