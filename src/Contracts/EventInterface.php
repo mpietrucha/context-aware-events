@@ -1,6 +1,6 @@
 <?php
 
-namespace Mpietrucha\Events\Concerns;
+namespace Mpietrucha\Events\Contracts;
 
 interface EventInterface
 {
