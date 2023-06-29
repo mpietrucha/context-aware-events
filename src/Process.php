@@ -80,7 +80,7 @@ class Process
         }
 
         ProcessFactory::file(collect([$this->vendor()->path(), self::STUB])->toRootDirectory())->stub([
-            '__AUTOLOAD__' => $vendor->autoload(),
+            '__AUTOLOAD__' => $vendor->root()->autoload(),
             '__CALLBACK__' => self::serialize($this->callback),
             '__BUFFER__' => self::serialize($this->outputer)
         ])->tty()->start()->wait();
