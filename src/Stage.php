@@ -7,6 +7,7 @@ use Composer\Script\Event;
 use Mpietrucha\Support\Vendor;
 use Mpietrucha\Events\Context;
 use Mpietrucha\Support\File;
+use Mpietrucha\Events\EventInterface;
 use Mpietrucha\Support\Process as ProcessBuilder;
 use Symfony\Component\Process\Process;
 use Mpietrucha\Support\Concerns\HasFactory;
@@ -15,8 +16,6 @@ use Mpietrucha\Exception\InvalidArgumentException;
 class Stage
 {
     use HasFactory;
-
-    protected const STUB = 'stubs/stage.stub.php';
 
     public function __construct(protected string $event, protected mixed $creator = null)
     {
@@ -28,8 +27,12 @@ class Stage
             return null;
         }
 
+        if ($this->creator instanceof EventInterface) {
+            $this->creator = fn () => $this->creator->handle();
+        }
+
         throw_unless($this->creator === null || $this->creator instanceof Closure, new InvalidArgumentException(
-            'Closure or null are valid callbacks'
+            'Dispatcher should be called without any arguments, event valid callbacks are', [Closure::class], 'or', [EventInterface::class].
         ));
 
         return $callback($this->event, $this->creator);
