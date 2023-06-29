@@ -32,7 +32,7 @@ class Stage
         }
 
         throw_unless($this->creator === null || $this->creator instanceof Closure, new InvalidArgumentException(
-            'Dispatcher should be called without any arguments, event valid callbacks are', [Closure::class], 'or', [EventInterface::class].
+            'Dispatcher should be called without any arguments, event valid callbacks are', [Closure::class], 'or', [EventInterface::class]
         ));
 
         return $callback($this->event, $this->creator);
