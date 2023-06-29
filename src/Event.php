@@ -4,6 +4,7 @@ namespace Mpietrucha\Events;
 
 use Mpietrucha\Support\Artisan;
 use Mpietrucha\Support\Cli;
+use Mpietrucha\Events\Contracts\EventInterface;
 
 abstract class Event implements EventInterface
 {
