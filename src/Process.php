@@ -69,8 +69,6 @@ class Process
     {
         throw_if($exception instanceof ProcessNotAllowedException, $exception);
 
-        $this->output->terminal()->clear();
-
         $vendor = $this->vendor();
 
         $version = Version::create($this->callback->framework(in: $this->caller)->runningInProcessMode(), $vendor);
