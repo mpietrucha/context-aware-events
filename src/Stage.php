@@ -31,7 +31,7 @@ class Stage
 
         if ($creator instanceof EventInterface) {
             $creator = function () use ($creator) {
-                $creator->handle($this);
+                $creator->run($this);
             };
         }
 
