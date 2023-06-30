@@ -41,11 +41,9 @@ class Process
             $cli->style()->as($vendor);
         });
 
-        $this->output = value($this->outputer)->hold();
+        $this->output = value($this->outputer);
 
         Rescue::create($callback)->fail($this->process(...))->call();
-
-        $this->output->release();
     }
 
     public static function setConfigurator(?Closure $configurator): void
@@ -70,8 +68,6 @@ class Process
     protected function process(Throwable $exception): void
     {
         throw_if($exception instanceof ClosureNotAllowedException, $exception);
-
-        $this->output->release();
 
         $vendor = $this->vendor();
 
