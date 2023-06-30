@@ -14,6 +14,13 @@ abstract class Event implements EventInterface
 
     protected Callback $callback;
 
+    public function run(Callback $callback): void
+    {
+        $this->callback = $callback;
+
+        $this->handle();
+    }
+
     public function cli(): Cli
     {
         $this->callback->assertProcessContext();
@@ -26,12 +33,5 @@ abstract class Event implements EventInterface
         $this->callback->assertProcessContext();
 
         Artisan::call($command, $arguments);
-    }
-
-    protected function run(Callback $callback): void
-    {
-        $this->callback = $callback;
-
-        $this->handle();
     }
 }
