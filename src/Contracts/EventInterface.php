@@ -6,7 +6,5 @@ use Mpietrucha\Events\Callback;
 
 interface EventInterface
 {
-    public function run(Callback $callback): void;
-
-    public function handle(): void;
+    public function handle(Callback $callback): void;
 }
