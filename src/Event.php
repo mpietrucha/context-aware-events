@@ -30,7 +30,7 @@ abstract class Event implements EventInterface
 
     protected function run(Callback $callback): void
     {
-        $this->callback = $callback
+        $this->callback = $callback;
 
         $this->handle();
     }
