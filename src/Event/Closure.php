@@ -19,6 +19,8 @@ abstract class Closure implements EventInterface
         $this->before($callback);
 
         $this->handle();
+
+        $this->cli()->newLine();
     }
 
     public function before(Callback $callback): void
