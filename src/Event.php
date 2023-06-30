@@ -2,8 +2,8 @@
 
 namespace Mpietrucha\Events;
 
+use Mpietrucha\Cli\Cli;
 use Mpietrucha\Support\Artisan;
-use Mpietrucha\Support\Cli;
 use Mpietrucha\Support\Concerns\HasFactory;
 use Mpietrucha\Events\Contracts\EventInterface;
 
