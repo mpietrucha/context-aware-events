@@ -23,19 +23,21 @@ class Stage
 
     public function handle(Closure $callback): ?Context
     {
-        if ($this->creator instanceof Event && $this->process()) {
+        $creator = $this->creator;
+
+        if ($creator instanceof Event && $this->process()) {
             return null;
         }
 
-        if ($this->creator instanceof EventInterface) {
-            return self::create($this->event, fn () => $this->creator->handle())->handle($callback);
+        if ($creator instanceof EventInterface) {
+            $creator = fn () => $creator->handle();
         }
 
-        throw_unless($this->creator === null || $this->creator instanceof Closure, new InvalidArgumentException(
+        throw_unless($creator === null || $creator instanceof Closure, new InvalidArgumentException(
             'Dispatcher should be called without any arguments, event valid callbacks are', [Closure::class], 'or', [EventInterface::class]
         ));
 
-        return $callback($this->event, $this->creator);
+        return $callback($this->event, $creator);
     }
 
     protected function process(): bool
