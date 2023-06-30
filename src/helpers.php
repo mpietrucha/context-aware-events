@@ -2,10 +2,11 @@
 
 use Mpietrucha\Events\Context;
 use Mpietrucha\Events\Component\Event;
+use Mpietrucha\Events\Event as EventContract;
 use Mpietrucha\Events\Component\Dispatcher;
 
 if (! function_exists('event_aware')) {
-    function event_aware(string $name, Closure $callback): Context {
+    function event_aware(string $name, Closure|EventContract $callback): Context {
         return Event::$name($callback);
     }
 }
