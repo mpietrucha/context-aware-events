@@ -134,16 +134,7 @@ class Callback
         return null;
     }
 
-    protected function shouldHandleNewBootstrapper(): bool
-    {
-        if ($this->process) {
-            return true;
-        }
-
-        return self::$bootstrapper === null;
-    }
-
-    protected function assertProcessContext(): void
+    public function assertProcessContext(): void
     {
         throw_unless($this->callback, new ClosureNotAllowedException(
             'Running outside callback is not allowed in this instance'
@@ -154,10 +145,19 @@ class Callback
         ));
     }
 
-    protected function assertClosureContext(): void
+    public function assertClosureContext(): void
     {
         throw_if($this->process, new ProcessNotAllowedException(
             'Running inside process is not allowed in this instance'
         ));
+    }
+
+    protected function shouldHandleNewBootstrapper(): bool
+    {
+        if ($this->process) {
+            return true;
+        }
+
+        return self::$bootstrapper === null;
     }
 }

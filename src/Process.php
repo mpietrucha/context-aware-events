@@ -13,7 +13,7 @@ use Mpietrucha\Support\Serializer;
 use Mpietrucha\Support\Concerns\HasVendor;
 use Mpietrucha\Support\Concerns\HasFactory;
 use Mpietrucha\Support\Process as ProcessFactory;
-use Mpietrucha\Events\Exception\ClosureNotAllowedException;
+use Mpietrucha\Events\Exception\ProcessNotAllowedException;
 
 class Process
 {
@@ -67,7 +67,7 @@ class Process
 
     protected function process(Throwable $exception): void
     {
-        throw_if($exception instanceof ClosureNotAllowedException, $exception);
+        throw_if($exception instanceof ProcessNotAllowedException, $exception);
 
         $this->output->terminal()->clear();
 
