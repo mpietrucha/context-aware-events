@@ -27,8 +27,8 @@ class Stage
             return null;
         }
 
-        if ($this->creator instanceof EventInterface) {
-            $this->creator = fn () => $this->creator->handle();
+        if ($creator = $this->creator instanceof EventInterface) {
+            $this->creator = fn () => $creator->handle();
         }
 
         throw_unless($this->creator === null || $this->creator instanceof Closure, new InvalidArgumentException(
