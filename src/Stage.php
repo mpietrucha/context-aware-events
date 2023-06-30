@@ -27,8 +27,8 @@ class Stage
             return null;
         }
 
-        if ($creator = $this->creator && $creator instanceof EventInterface) {
-            $this->creator = fn () => $creator->handle();
+        if ($this->creator instanceof EventInterface) {
+            return self::create($this->event, fn () => $this->creator->handle())->handle($callback);
         }
 
         throw_unless($this->creator === null || $this->creator instanceof Closure, new InvalidArgumentException(
