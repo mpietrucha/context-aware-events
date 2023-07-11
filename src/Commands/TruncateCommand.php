@@ -13,8 +13,6 @@ class TruncateCommand extends Command
 
     public function handle(): void
     {
-        $this->components->task('Clearing events', function () {
-            Bootstrap::create()->truncate();
-        });
+        $this->components->task('Clearing events', Bootstrap::create()->truncate(...));
     }
 }
